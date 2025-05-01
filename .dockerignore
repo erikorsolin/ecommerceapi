@@ -1,0 +1,7 @@
+bin/
+obj/
+*.csproj.user
+*.sln
+.vs/
+.vscode/
+*.db
