@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+namespace EcommerceApi.DTOs;
 public class ProductDTO
 {
     public int Id { get; set; }

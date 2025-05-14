@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+namespace EcommerceApi.DTOs;
 public class CreateProductDTO
 {
     public int Id { get; set; }
@@ -18,6 +18,4 @@ public class CreateProductDTO
     public int Stock { get; set; }
 
     public int CategoryId { get; set; }
-    
-    public CategoryDTO? Category { get; set; }
-}
+    }
