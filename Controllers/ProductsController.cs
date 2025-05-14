@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using EcommerceApi.Models;
 using EcommerceApi.Data;
 
+// POST/PUT: recebe um DTO → converte em Model para salvar no banco.
+// GET: busca um Model no banco → converte em DTO para retornar.
+
 namespace EcommerceApi.Controllers
 {
     [ApiController]
@@ -20,7 +23,41 @@ namespace EcommerceApi.Controllers
         public async Task<IActionResult> GetProducts()
         {
             var products = await _context.Products.Include(p => p.Category).ToListAsync();
-            return Ok(products);
+            var productsDTOs = new List<ProductDTO>();
+
+            foreach (var product in products)
+            {
+                if (product.Category != null)
+                {
+                    var productDTO = new ProductDTO
+                    {
+                        Id = product.Id,
+                        Name = product.Name,
+                        Description = product.Description,
+                        Price = product.Price,
+                        Stock = product.Stock,
+                        Category = new CategoryDTO
+                        {
+                            Id = product.Category.Id,
+                            Name = product.Category.Name
+                        }
+                    };
+                    productsDTOs.Add(productDTO);
+                }
+                else
+                {
+                    var productDTO = new ProductDTO
+                    {
+                        Id = product.Id,
+                        Name = product.Name,
+                        Description = product.Description,
+                        Price = product.Price,
+                        Stock = product.Stock
+                    };
+                    productsDTOs.Add(productDTO);
+                }
+            }
+            return Ok(productsDTOs);
         }
 
         [HttpGet("{id}")]
@@ -28,15 +65,54 @@ namespace EcommerceApi.Controllers
         {
             var product = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
             if (product == null) return NotFound();
-            return Ok(product);
+            
+            ProductDTO productDTO;
+
+            if (product.Category != null)
+            {
+                productDTO = new ProductDTO
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price,
+                    Stock = product.Stock,
+                    Category = new CategoryDTO
+                    {
+                        Id = product.Category.Id,
+                        Name = product.Category.Name
+                    }
+                };
+            }
+            else
+            {
+                productDTO = new ProductDTO
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price,
+                    Stock = product.Stock
+                };
+            }    
+            return Ok(productDTO);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateProduct([FromBody] Product product)
+        public async Task<IActionResult> CreateProduct([FromBody] CreateProductDTO productDTO)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            if (product.Price <= 0) return BadRequest("Price must be positive.");
-            if (product.Stock < 0) return BadRequest("Stock cannot be negative.");
+            if (productDTO.Price <= 0) return BadRequest("Price must be positive.");
+            if (productDTO.Stock < 0) return BadRequest("Stock cannot be negative.");
+
+            var product = new Product
+            {
+                Name = productDTO.Name,
+                Description = productDTO.Description,
+                Price = productDTO.Price,
+                Stock = productDTO.Stock,
+                CategoryId = productDTO.CategoryId
+            };
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
@@ -44,24 +120,25 @@ namespace EcommerceApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product product)
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] CreateProductDTO productDTO)
         {
-            if (id != product.Id) return BadRequest("ID mismatch.");
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (productDTO.Price <= 0) return BadRequest("Price must be positive.");
+            if (productDTO.Stock < 0) return BadRequest("Stock cannot be negative.");
 
-            var existingProduct = await _context.Products.FindAsync(id);
-            if (existingProduct == null) return NotFound();
+            var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
 
-            existingProduct.Name = product.Name;
-            existingProduct.Description = product.Description;
-            existingProduct.Price = product.Price;
-            existingProduct.Stock = product.Stock;
-            existingProduct.CategoryId = product.CategoryId;
+            product.Name = productDTO.Name;
+            product.Description = productDTO.Description;
+            product.Price = productDTO.Price;
+            product.Stock = productDTO.Stock;
+            product.CategoryId = productDTO.CategoryId;
 
             await _context.SaveChangesAsync();
             return NoContent();
         }
-
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
