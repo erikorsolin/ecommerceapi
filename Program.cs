@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using EcommerceApi.Services;
 using EcommerceApi.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 
