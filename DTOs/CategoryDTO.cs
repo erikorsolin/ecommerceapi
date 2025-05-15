@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+namespace EcommerceApi.DTOs;
 public class CategoryDTO
 {
     public int Id { get; set; }
