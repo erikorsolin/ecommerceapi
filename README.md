@@ -1,4 +1,4 @@
-# Ecommerce API (em desenvolvimento)
+# Ecommerce API (⚠️ em desenvolvimento)
 Uma API REST para gerenciar produtos e categorias em um e-commerce.
 
 ## Pré-requisitos
